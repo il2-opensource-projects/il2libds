@@ -2,6 +2,12 @@
 
 import logging
 import os
+import sys
+import time
+import logging
+import re 
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 logging.basicConfig(level=logging.DEBUG,
 format='[%(asctime)s] %(levelname)s: %(message)s',
@@ -9,57 +15,56 @@ format='[%(asctime)s] %(levelname)s: %(message)s',
       filemode='w')
 
 class MissionReportParser:
-	def __init__(self, gamePath):
+	def __init__(self, gamePath, flagHandler):
 		logging.info('Game path: {gamePath}'.format(gamePath=gamePath))
 		self.dataPath = gamePath + '\\data'
-		self.msPath = None
-		self.missionReport = None
-		self.findMissionReport()
-		self.openMissionReport()
-		self.parseMissionReport()
+		self.flagHandler = flagHandler
+		self.observer = Observer()
 
-	def findMissionReport(self):
+	def run(self):
+		event_handler = MissionReportHandler(self.flagHandler)
+		self.observer.schedule(event_handler, self.dataPath, recursive=False)
+		self.observer.start()
 		try:
-			logging.info('Looking for latest mission report file...')
-			for filename in os.listdir(self.dataPath):
-				if 'missionReport' in filename:
-					# Overwrites variable until latest mission report
-					# TODO: clean older reports
-					# TODO: use watchdog to get latest mission report         !!!!!
-					self.msPath = filename
-			if self.msPath:
-				logging.info('Mission Report found: ' + self.msPath)
-				return
-		except Exception as e:
-			logging.error('findMissionReport error')
-			logging.error('{error}'.format(error=str(e)))
+			while True:
+				time.sleep(1)
+		except KeyboardInterrupt:
+			self.observer.stop()
+		self.observer.join()
 
-		raise ValueError('Could not find mission report file!')
+	def stop(self):
+		self.observer.stop()
+		self.observer.join()
 
-	def openMissionReport(self):
-		try:
-			logging.info('Opening mission report file...')
-			with open(self.dataPath + '\\' + self.msPath, 'r') as file:
-			    self.missionReport = file.read()
-			    return
-			
-		except Exception as e:
-			logging.error('openMissionReport error')
-			logging.error('{error}'.format(error=str(e)))
+class MissionReportHandler(FileSystemEventHandler):
+  	def __init__(self, flagHandler):
+  		self.flagHandler = flagHandler
 
-		raise ValueError('Could not open mission report file!')
+  	def on_created(self, event):
+  		if event.is_directory:
+  			return None
+  		elif event.event_type == 'created':
+  			msPath = event.src_path
+  			if 'missionReport' in msPath and '.txt' in msPath:
+  				logging.info('Mission Report created: ' + msPath)
+  				# Opens the file and parses the flags, if any
+  				try:
+  					with open(msPath, 'r') as file:
+  						report = file.readlines()
+  					for r in report:
+  						match = re.findall('fake_block.*COUNTRY:203 NAME:(\\S*)', r)
+  						if len(match) > 0:
+  							logging.info('Flag found: ' + match[0])
+  							# Finally calls flag handler function
+  							self.flagHandler(match[0].replace('\\n', ''))
+  					# Keeps the folder clean of mission report files
+  					os.remove(msPath) 
+  				except Exception as e:
+  					logging.error('handleNewMissionReport error')
+  					logging.error('{error}'.format(error=str(e)))
 
-	def parseMissionReport(self):
-		try:
-			logging.info('Parsing mission report file...')
-			print(self.missionReport)
-			# TODO: fetch AType:12, TYPE:fake_block, COUNTRY:203 (Japan)
-			# TODO: NAME will hold the variable name
-			
-		except Exception as e:
-			logging.error('parseMissionReport error')
-			logging.error('{error}'.format(error=str(e)))
+def test(missionReport):
+	print("flagHandler: " + missionReport)
 
-		# raise ValueError('Could not open mission report file!')
-
-lp = MissionReportParser('C:\\Program Files (x86)\\Steam\\steamapps\\common\\IL-2 Sturmovik Battle of Stalingrad')
+mrParser = MissionReportParser('C:\\Program Files (x86)\\Steam\\steamapps\\common\\IL-2 Sturmovik Battle of Stalingrad', test)
+mrParser.run()
