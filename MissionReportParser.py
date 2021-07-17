@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import logging
 import os
 import sys
 import time
@@ -11,7 +10,7 @@ from watchdog.events import FileSystemEventHandler
 
 logging.basicConfig(level=logging.DEBUG,
 format='[%(asctime)s] %(levelname)s: %(message)s',
-      filename='MissionReportParser.log',
+      filename='log/MissionReportParser.log',
       filemode='w')
 
 class MissionReportParser:

@@ -7,7 +7,7 @@ import re
 
 logging.basicConfig(level=logging.DEBUG,
 format='[%(asctime)s] %(levelname)s: %(message)s',
-      filename='RCon.log',
+      filename='log/RCon.log',
       filemode='w')
 
 BUFFER_SIZE = 2048
