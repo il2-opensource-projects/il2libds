@@ -65,5 +65,5 @@ class MissionReportHandler(FileSystemEventHandler):
 def test(missionReport):
 	print("flagHandler: " + missionReport)
 
-mrParser = MissionReportParser('C:\\Program Files (x86)\\Steam\\steamapps\\common\\IL-2 Sturmovik Battle of Stalingrad', test)
-mrParser.run()
+# mrParser = MissionReportParser('C:\\Program Files (x86)\\Steam\\steamapps\\common\\IL-2 Sturmovik Battle of Stalingrad', test)
+# mrParser.run()

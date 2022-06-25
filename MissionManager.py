@@ -11,6 +11,7 @@ format='[%(asctime)s] %(levelname)s: %(message)s',
 class MissionManager:
 
     def __init__(self, gamePath):
+        print('MissionManager')
         self.gamePath = gamePath
         self.mrParser =  MissionReportParser(self.gamePath, self.flagHandler)
         self.mrParser.run()
@@ -24,4 +25,4 @@ class MissionManager:
         print('handleMissionChange: ' + missionPath)
 
 
-missionManager = MissionManager('C:\\Program Files (x86)\\Steam\\steamapps\\common\\IL-2 Sturmovik Battle of Stalingrad')
+# missionManager = MissionManager('C:\\Program Files (x86)\\Steam\\steamapps\\common\\IL-2 Sturmovik Battle of Stalingrad')
